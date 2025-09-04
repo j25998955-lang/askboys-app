@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ASKBOYS - Preguntas y Respuestas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google tag (gtag.js) - ID de medición actualizado con G-12117316434 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-12117316434"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'G-12117316434');
+    </script>
+    
+    <style>
+        /* Base y Tipografía */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #0a1930;
+            color: #ffffff;
+            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            flex-grow: 1;
+        }
+
+        /* Header */
+        header {
+            background: linear-gradient(135deg, #1a3a6e, #0a1930);
+            color: white;
+            padding: 1.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: 0 0 10px 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            letter-spacing: 2px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .user-id {
+            font-size: 0.8rem;
+            opacity: 0.7;
+            word-break: break-all;
+            margin-top: 5px;
+        }
+        
+        /* Contenedor de carga */
+        #loading-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+
+        .loading-spinner {
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #4a90e2;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Layout de las columnas */
+        .main-content {
+            display: none;
+            gap: 20px;
+            /* Se muestra con JS cuando los datos están listos */
+        }
+
+        .column {
+            background-color: #1a2a43;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            flex: 1;
+        }
+
+        /* Secciones */
+        #questionsSection,
+        #askSection,
+        #userSection {
+            flex-direction: column;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            margin-bottom: 15px;
+            border-left: 4px solid #4a90e2;
+            padding-left: 10px;
+        }
+
+        /* Formulario de pregunta */
+        #askForm {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        #askForm textarea,
+        #askForm input {
+            padding: 12px;
+            border: 1px solid #3d4a67;
+            border-radius: 8px;
+            background-color: #273752;
+            color: #ffffff;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        #askForm textarea:focus,
+        #askForm input:focus {
+            outline: none;
+            border-color: #4a90e2;
+        }
+
+        #askForm button {
+            padding: 12px 20px;
+            background-color: #4a90e2;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        #askForm button:hover {
+            background-color: #357bd8;
+            transform: translateY(-2px);
+        }
+
+        /* Lista de preguntas */
+        #questionsList {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .question-card {
+            background-color: #273752;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .question-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+        }
+
+        .question-meta {
+            font-size: 0.9rem;
+            color: #a0a0a0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .question-author, .answer-author {
+            display: flex;
+            align-items: center;
+        }
+        
+        .author-avatar {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            margin-right: 5px;
+        }
+        
+        .answer-meta .author-avatar {
+            width: 20px;
+            height: 20px;
+        }
+
+        .question-body {
+            font-size: 1rem;
+            margin-bottom: 15px;
+        }
+        
+        .reaction-button {
+            background: none;
+            border: none;
+            color: #a0a0a0;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: color 0.2s ease, transform 0.2s ease;
+        }
+        
+        .reaction-button.reacted {
+            color: #4a90e2;
+            transform: scale(1.1);
+        }
+
+        /* Respuestas */
+        .answers-section {
+            margin-top: 15px;
+            padding-left: 15px;
+            border-left: 2px solid #3d4a67;
+        }
+
+        .answers-section h4 {
+            font-size: 1.1rem;
+            margin-bottom: 10px;
+        }
+
+        .answer-card {
+            background-color: #1a2a43;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .answer-meta {
+            font-size: 0.8rem;
+            color: #a0a0a0;
+            margin-bottom: 5px;
+        }
+        
+        .answer-body {
+            font-size: 0.95rem;
+        }
+
+        .answer-form {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .answer-form input {
+            flex-grow: 1;
+        }
+        
+        /* Sección de perfil */
+        .user-profile {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .profile-avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            border: 3px solid #4a90e2;
+        }
+        
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .profile-info h3 {
+            font-size: 1.5rem;
+            margin: 0;
+        }
+        
+        .profile-info p {
+            margin: 5px 0;
+            font-size: 0.9rem;
+            color: #a0a0a0;
+        }
+        
+        .badges-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .badge {
+            background-color: #4a90e2;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .badge.expert { background-color: #ffc107; }
+        .badge.contributor { background-color: #28a745; }
+        .badge.novice { background-color: #6c757d; }
+        .badge.popular { background-color: #e83e8c; }
+        .badge.veteran { background-color: #6f42c1; }
+        
+        .avatar-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .avatar-option {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border-color 0.2s ease;
+        }
+        
+        .avatar-option.selected {
+            border-color: #4a90e2;
+        }
+        
+        .unowned-avatar {
+            filter: grayscale(100%);
+            opacity: 0.5;
+        }
+
+        /* Paginación y vistas móviles */
+        .mobile-tabs {
+            display: none;
+        }
+        
+        .load-more-btn {
+            background-color: #273752;
+            color: #ffffff;
+            border: 1px solid #3d4a67;
+            padding: 10px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 20px;
+            width: 100%;
+            transition: background-color 0.3s;
+        }
+
+        .load-more-btn:hover {
+            background-color: #3d4a67;
+        }
+        
+        .column.active {
+            display: flex;
+        }
+
+        /* Media Queries para diseño responsivo */
+        @media (max-width: 900px) {
+            .main-content {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .column {
+                padding: 15px;
+                border-radius: 0;
+                box-shadow: none;
+                display: none; /* Se ocultan por defecto en móvil */
+            }
+
+            .column.active {
+                display: flex;
+            }
+            
+            .mobile-tabs {
+                display: flex;
+                justify-content: space-around;
+                background-color: #1a2a43;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                z-index: 1000;
+                box-shadow: 0 -2px 10px rgba(0,0,0,0.2);
+            }
+            
+            .mobile-tab {
+                flex: 1;
+                text-align: center;
+                padding: 15px 0;
+                color: #a0a0a0;
+                font-size: 0.8rem;
+                cursor: pointer;
+                transition: color 0.3s;
+            }
+            
+            .mobile-tab i {
+                font-size: 1.2rem;
+                display: block;
+                margin-bottom: 5px;
+            }
+            
+            .mobile-tab.active {
+                color: #4a90e2;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>ASKBOYS</h1>
+        <p>Tu comunidad para resolver dudas y compartir conocimientos.</p>
+        <div class="user-id-container">
+            Tu ID: <span id="userIdDisplay">Cargando...</span>
+        </div>
+    </header>
+    
+    <div id="loading-container">
+        <div class="loading-spinner"></div>
+        <p style="margin-top: 20px;">Cargando...</p>
+    </div>
+
+    <div class="container main-content">
+        <section id="questionsSection" class="column">
+            <h2>Preguntas Recientes</h2>
+            <ul id="questionsList">
+                <!-- Las preguntas se cargarán aquí -->
+            </ul>
+            <button id="loadMoreBtn" class="load-more-btn">Cargar más</button>
+        </section>
+
+        <section id="askSection" class="column">
+            <h2>Haz una Pregunta</h2>
+            <form id="askForm">
+                <input type="text" id="questionTitle" placeholder="Título de tu pregunta" required>
+                <textarea id="questionBody" placeholder="Escribe el cuerpo de tu pregunta..." rows="5" required></textarea>
+                <button type="submit">Publicar Pregunta</button>
+            </form>
+        </section>
+
+        <section id="userSection" class="column">
+            <h2>Mi Perfil</h2>
+            <div class="user-profile">
+                <div class="profile-header">
+                    <img id="userAvatar" class="profile-avatar" src="https://placehold.co/80x80/4a90e2/ffffff?text=U" alt="Avatar del usuario">
+                    <div class="profile-info">
+                        <h3><span id="userName">Usuario</span></h3>
+                        <p>Puntos: <span id="userPoints">0</span></p>
+                        <div id="userBadges" class="badges-list">
+                            <!-- Las medallas se cargarán aquí -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="avatars-gallery">
+                    <h3>Selecciona un Avatar</h3>
+                    <div id="avatarList" class="avatar-list">
+                        <!-- Los avatares se cargarán aquí -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="mobile-tabs">
+        <div class="mobile-tab active" data-tab="questions">
+            <i class="fas fa-question-circle"></i>
+            <span>Preguntas</span>
+        </div>
+        <div class="mobile-tab" data-tab="ask">
+            <i class="fas fa-plus-circle"></i>
+            <span>Preguntar</span>
+        </div>
+        <div class="mobile-tab" data-tab="profile">
+            <i class="fas fa-user-circle"></i>
+            <span>Perfil</span>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, onSnapshot, query, where, doc, getDoc, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        
+        // Variables globales proporcionadas por el entorno de Canvas
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+        const firebaseConfig = JSON.parse(typeof __firebase_config !== 'undefined' ? __firebase_config : '{}');
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        let userId = null;
+        let userData = {};
+        let allQuestions = [];
+
+        const userPointsMultiplier = {
+            'publish_question': 10,
+            'publish_answer': 5,
+            'reaction_question': 1,
+            'reaction_answer': 1
+        };
+
+        const AVATAR_URLS = {
+            'initial': 'https://placehold.co/80x80/4a90e2/ffffff?text=U',
+            'coder': 'https://placehold.co/80x80/f39c12/ffffff?text=C',
+            'expert': 'https://placehold.co/80x80/e74c3c/ffffff?text=E',
+            'veteran': 'https://placehold.co/80x80/9b59b6/ffffff?text=V'
+        };
+
+        // Referencias a colecciones y documentos de Firestore
+        const questionsCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'questions');
+        const answersCollectionRef = collection(db, 'artifacts', appId, 'public', 'data', 'answers');
+        
+        // Función para obtener la referencia al documento del usuario
+        function getUserDataDocRef(uid) {
+            return doc(db, 'artifacts', appId, 'users', uid);
+        }
+
+        // Función para cargar los datos del usuario de Firestore
+        async function loadUserData() {
+            try {
+                const userDocRef = getUserDataDocRef(userId);
+                const docSnap = await getDoc(userDocRef);
+                if (docSnap.exists()) {
+                    userData = docSnap.data();
+                } else {
+                    console.log("No se encontraron datos de usuario. Creando un nuevo perfil.");
+                    userData = {
+                        reactionPoints: 0,
+                        badges: ['novice'],
+                        ownedAvatars: ['initial'],
+                        reactedQuestions: {},
+                        reactedAnswers: {},
+                        avatar: 'initial',
+                    };
+                    await setDoc(userDocRef, userData);
+                }
+            } catch (e) {
+                console.error("Error al cargar datos del usuario:", e);
+                // Propagamos el error para manejarlo en la función de autenticación
+                throw e;
+            }
+        }
+        
+        // Función para guardar los datos del usuario en Firestore
+        async function saveUserData() {
+            try {
+                const userDocRef = getUserDataDocRef(userId);
+                await setDoc(userDocRef, userData);
+            } catch (e) {
+                console.error("Error al guardar datos del usuario:", e);
+            }
+        }
+
+        // Función para actualizar los puntos y medallas del usuario
+        async function updatePoints(pointsChange) {
+            try {
+                userData.reactionPoints = (userData.reactionPoints || 0) + pointsChange;
+                updateBadges();
+                await saveUserData();
+                updateProfileUI();
+            } catch (e) {
+                console.error("Error al actualizar puntos:", e);
+            }
+        }
+
+        function updateBadges() {
+            if (userData.reactionPoints >= 50 && !userData.badges.includes('contributor')) {
+                userData.badges.push('contributor');
+            }
+            if (userData.reactionPoints >= 200 && !userData.badges.includes('expert')) {
+                userData.badges.push('expert');
+            }
+            if (userData.reactionPoints >= 500 && !userData.badges.includes('veteran')) {
+                userData.badges.push('veteran');
+            }
+        }
+
+        // Función para renderizar el UI del perfil
+        function updateProfileUI() {
+            document.getElementById('userIdDisplay').textContent = userId;
+            document.getElementById('userName').textContent = userId.substring(0, 8);
+            document.getElementById('userPoints').textContent = userData.reactionPoints || 0;
+            
+            const avatarImg = document.getElementById('userAvatar');
+            avatarImg.src = AVATAR_URLS[userData.avatar] || AVATAR_URLS['initial'];
+            avatarImg.alt = `Avatar de ${userData.avatar}`;
+            
+            const badgesList = document.getElementById('userBadges');
+            badgesList.innerHTML = '';
+            (userData.badges || []).forEach(badge => {
+                const badgeElement = document.createElement('span');
+                badgeElement.className = `badge ${badge}`;
+                badgeElement.innerHTML = `<span>${badge.toUpperCase()}</span>`;
+                badgesList.appendChild(badgeElement);
+            });
+            
+            renderAvatars();
+        }
+
+        // Función para renderizar los avatares disponibles
+        function renderAvatars() {
+            const avatarList = document.getElementById('avatarList');
+            avatarList.innerHTML = '';
+            
+            Object.keys(AVATAR_URLS).forEach(avatarKey => {
+                const img = document.createElement('img');
+                img.src = AVATAR_URLS[avatarKey];
+                img.alt = `${avatarKey} avatar`;
+                img.className = 'avatar-option';
+                
+                if ((userData.ownedAvatars || []).includes(avatarKey)) {
+                    img.classList.remove('unowned-avatar');
+                    img.onclick = () => selectAvatar(avatarKey);
+                } else {
+                    img.classList.add('unowned-avatar');
+                    img.onclick = null;
+                }
+                
+                if (userData.avatar === avatarKey) {
+                    img.classList.add('selected');
+                }
+                
+                avatarList.appendChild(img);
+            });
+        }
+        
+        // Función para seleccionar un avatar
+        async function selectAvatar(avatarKey) {
+            if ((userData.ownedAvatars || []).includes(avatarKey)) {
+                userData.avatar = avatarKey;
+                await saveUserData();
+                updateProfileUI();
+            }
+        }
+        
+        // Función para renderizar preguntas y respuestas
+        function renderQuestions() {
+            const questionsList = document.getElementById('questionsList');
+            questionsList.innerHTML = '';
+            
+            allQuestions.forEach(question => {
+                const li = document.createElement('li');
+                li.className = 'question-card';
+                li.innerHTML = `
+                    <h3>${question.title}</h3>
+                    <div class="question-meta">
+                        <div class="question-author">
+                            <img class="author-avatar" src="${AVATAR_URLS[question.userAvatar] || AVATAR_URLS['initial']}" alt="Avatar">
+                            <span>${question.userName}</span>
+                        </div>
+                        <span>${new Date(question.timestamp).toLocaleString()}</span>
+                    </div>
+                    <div class="question-body">${question.body}</div>
+                    <div class="reactions-container">
+                        <button class="reaction-button" data-id="${question.id}" data-type="question">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span class="reaction-count">${question.reactions}</span>
+                        </button>
+                    </div>
+                    <div class="answers-section" id="answers-${question.id}">
+                        <h4>Respuestas</h4>
+                        <!-- Las respuestas se cargarán aquí -->
+                    </div>
+                    <form class="answer-form" data-question-id="${question.id}">
+                        <input type="text" placeholder="Escribe tu respuesta..." required>
+                        <button type="submit">Enviar</button>
+                    </form>
+                `;
+                questionsList.appendChild(li);
+                
+                // Actualizar el estado de reacción del usuario
+                const reactionBtn = li.querySelector('.reaction-button');
+                if ((userData.reactedQuestions || {})[question.id]) {
+                    reactionBtn.classList.add('reacted');
+                }
+                
+                reactionBtn.onclick = () => reactToItem(question.id, 'questions');
+                
+                // Cargar respuestas para cada pregunta
+                getQuestionAnswers(question.id);
+            });
+        }
+        
+        // Función para reaccionar a preguntas o respuestas
+        async function reactToItem(itemId, collectionName) {
+            const itemRef = doc(db, 'artifacts', appId, 'public', 'data', collectionName, itemId);
+            const itemSnap = await getDoc(itemRef);
+            
+            if (itemSnap.exists()) {
+                const itemData = itemSnap.data();
+                let newReactions = itemData.reactions || 0;
+                
+                const isReacted = collectionName === 'questions' ? 
+                    ((userData.reactedQuestions || {})[itemId] || false) : 
+                    ((userData.reactedAnswers || {})[itemId] || false);
+                    
+                if (!isReacted) {
+                    newReactions++;
+                    if (collectionName === 'questions') {
+                        userData.reactedQuestions[itemId] = true;
+                    } else {
+                        userData.reactedAnswers[itemId] = true;
+                    }
+                    await updateDoc(itemRef, { reactions: newReactions });
+                    await updatePoints(userPointsMultiplier['reaction_question']);
+                } else {
+                    newReactions--;
+                    if (newReactions < 0) newReactions = 0;
+                    if (collectionName === 'questions') {
+                        delete userData.reactedQuestions[itemId];
+                    } else {
+                        delete userData.reactedAnswers[itemId];
+                    }
+                    await updateDoc(itemRef, { reactions: newReactions });
+                    await updatePoints(-userPointsMultiplier['reaction_question']);
+                }
+                
+                await saveUserData();
+            }
+        }
+        
+        // Función para obtener las respuestas de una pregunta
+        async function getQuestionAnswers(questionId) {
+            try {
+                const answersContainer = document.getElementById(`answers-${questionId}`);
+                const q = query(answersCollectionRef, where('questionId', '==', questionId));
+                
+                onSnapshot(q, (querySnapshot) => {
+                    answersContainer.innerHTML = '<h4>Respuestas</h4>';
+                    querySnapshot.forEach(doc => {
+                        const answer = doc.data();
+                        const answerCard = document.createElement('div');
+                        answerCard.className = 'answer-card';
+                        answerCard.innerHTML = `
+                            <div class="answer-meta">
+                                <div class="answer-author">
+                                    <img class="author-avatar" src="${AVATAR_URLS[answer.userAvatar] || AVATAR_URLS['initial']}" alt="Avatar">
+                                    <span>${answer.userName}</span>
+                                </div>
+                                <span>${new Date(answer.timestamp).toLocaleString()}</span>
+                            </div>
+                            <div class="answer-body">${answer.body}</div>
+                        `;
+                        answersContainer.appendChild(answerCard);
+                    });
+                });
+            } catch (e) {
+                console.error("Error al escuchar respuestas:", e);
+            }
+        }
+
+        // Lógica para cambiar de pestañas en móvil
+        function setupMobileTabs() {
+            const sections = {
+                'questions': document.getElementById('questionsSection'),
+                'ask': document.getElementById('askSection'),
+                'profile': document.getElementById('userSection')
+            };
+            
+            const tabs = document.querySelectorAll('.mobile-tab');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetTab = tab.dataset.tab;
+                    
+                    // Desactivar todas las pestañas y secciones
+                    tabs.forEach(t => t.classList.remove('active'));
+                    Object.values(sections).forEach(s => s.classList.remove('active'));
+                    
+                    // Activar la pestaña y sección objetivo
+                    tab.classList.add('active');
+                    sections[targetTab].classList.add('active');
+                });
+            });
+        }
+        
+        // Manejadores de eventos
+        document.getElementById('askForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const title = document.getElementById('questionTitle').value;
+            const body = document.getElementById('questionBody').value;
+            
+            try {
+                await addDoc(questionsCollectionRef, {
+                    title,
+                    body,
+                    userName: (userId || 'anónimo').substring(0, 8),
+                    userAvatar: userData.avatar || 'initial',
+                    userId: userId,
+                    timestamp: Date.now(),
+                    reactions: 0,
+                    answersCount: 0
+                });
+                
+                await updatePoints(userPointsMultiplier['publish_question']);
+                document.getElementById('askForm').reset();
+            } catch (e) {
+                console.error("Error al agregar pregunta:", e);
+            }
+        });
+
+        document.addEventListener('submit', async (e) => {
+            if (e.target.classList.contains('answer-form')) {
+                e.preventDefault();
+                const form = e.target;
+                const questionId = form.dataset.questionId;
+                const answerBody = form.querySelector('input').value;
+                
+                try {
+                    await addDoc(answersCollectionRef, {
+                        questionId,
+                        body: answerBody,
+                        userName: (userId || 'anónimo').substring(0, 8),
+                        userAvatar: userData.avatar || 'initial',
+                        userId: userId,
+                        timestamp: Date.now(),
+                        reactions: 0
+                    });
+                    
+                    await updatePoints(userPointsMultiplier['publish_answer']);
+                    form.reset();
+                } catch (e) {
+                    console.error("Error al agregar respuesta:", e);
+                }
+            }
+        });
+        
+        // Autenticación y Carga Inicial
+        async function authenticateAndLoad() {
+            try {
+                let userCredential;
+                if (initialAuthToken) {
+                    userCredential = await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    userCredential = await signInAnonymously(auth);
+                }
+                const user = userCredential.user;
+
+                if (user) {
+                    userId = user.uid;
+                    await loadUserData();
+                    
+                    document.getElementById('loading-container').style.display = 'none';
+                    document.querySelector('.main-content').style.display = 'flex';
+                    
+                    updateProfileUI();
+
+                    onSnapshot(questionsCollectionRef, (querySnapshot) => {
+                        const fetchedQuestions = [];
+                        querySnapshot.forEach(doc => {
+                            const question = doc.data();
+                            question.id = doc.id;
+                            fetchedQuestions.push(question);
+                        });
+                        // Ordenar por timestamp
+                        fetchedQuestions.sort((a, b) => b.timestamp - a.timestamp);
+                        allQuestions = fetchedQuestions;
+                        renderQuestions();
+                    });
+                    
+                    const isMobile = window.matchMedia("(max-width: 900px)").matches;
+                    if (isMobile) {
+                        document.getElementById('questionsSection').classList.add('active');
+                        document.querySelector('.mobile-tab[data-tab="questions"]').classList.add('active');
+                    } else {
+                        document.getElementById('questionsSection').classList.add('active');
+                        document.getElementById('askSection').classList.add('active');
+                        document.getElementById('userSection').classList.add('active');
+                    }
+
+                    setupMobileTabs();
+
+                } else {
+                    console.error("La autenticación falló y no se pudo obtener el usuario.");
+                    document.getElementById('loading-container').innerHTML = `<p style="color: red;">Error: No se pudo autenticar al usuario. Intente recargar.</p>`;
+                }
+            } catch (e) {
+                console.error("Error en la carga inicial:", e);
+                document.getElementById('loading-container').innerHTML = `<p style="color: red;">Error al iniciar la aplicación. Revise la consola.</p>`;
+            }
+        }
+        
+        authenticateAndLoad();
+    </script>
+</body>
+</html>
